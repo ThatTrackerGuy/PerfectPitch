@@ -2,702 +2,693 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Sax Note-Guess — Practice & Games</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sax Note Guess — Pro (single file)</title>
 <style>
-  :root{ --bg:#071228; --card:#0b1330; --accent:#ffa94d; --muted:#9fb0c8; --good:#66e3a6; --bad:#ff7b7b; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; color:#eaf4ff;}
-  body{background:linear-gradient(180deg,#041024,#071833); margin:0; padding:20px; display:flex; justify-content:center; min-height:100vh;}
-  .wrap{width:1050px; max-width:96%; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03)); border-radius:12px; padding:18px; box-shadow:0 20px 60px rgba(2,6,23,.6);}
-  header{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;}
+  :root{
+    --bg:#071227; --card:#0b1430; --muted:#9fb0c8; --accent:#ffb86b; --good:#66e3a6; --bad:#ff7b7b;
+    --panel-gap:14px; --radius:12px; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; color:#eaf4ff;
+  }
+  html,body{height:100%;}
+  body{margin:0;padding:18px; background:linear-gradient(180deg,#041022,#071630); display:flex; justify-content:center; align-items:flex-start; min-height:100vh;}
+  .wrap{width:1100px; max-width:98%; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03)); border-radius:var(--radius); padding:18px; box-shadow:0 22px 60px rgba(0,0,0,.6);}
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;}
   h1{font-size:20px;margin:0;}
   .muted{color:var(--muted); font-size:13px;}
-  .controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
-  select,input[type=range],button,input[type=checkbox]{background:#071226; color:inherit; border:1px solid rgba(255,255,255,0.04); padding:8px 10px; border-radius:8px;}
-  .card{background:var(--card); padding:14px; border-radius:10px; margin-bottom:12px;}
-  .panel{display:flex; gap:16px; align-items:flex-start;}
-  .left{flex:1; min-width:360px;}
-  .right{width:340px;}
-  .big-note{font-size:46px; font-weight:700; margin:12px 0; letter-spacing:0.02em;}
-  .buttons{display:flex; gap:8px; flex-wrap:wrap;}
-  .choice{flex:1; min-width:88px; padding:12px; background:transparent; border:1px solid rgba(255,255,255,0.04); border-radius:8px; text-align:center; cursor:pointer;}
+  .grid{display:flex; gap:var(--panel-gap); align-items:flex-start;}
+  .left{flex:1; min-width:320px;}
+  .right{width:360px;}
+  .card{background:var(--card); border-radius:10px; padding:14px; margin-bottom:12px;}
+  .big-note{font-size:48px; font-weight:700; margin:8px 0;}
+  .controls-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  select,input[type=range],button,input[type=checkbox]{background:#071226;color:inherit;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;}
+  .buttons{display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-top:12px;}
+  .choice{padding:12px;border-radius:9px;border:1px solid rgba(255,255,255,0.04);background:transparent;font-weight:600;cursor:pointer;min-height:48px; display:flex; align-items:center; justify-content:center; font-size:16px;}
   .choice.correct{background:linear-gradient(90deg,#003d2f,#075b46); color:var(--good); border-color:rgba(110,231,183,0.12);}
   .choice.wrong{background:linear-gradient(90deg,#3b0f0f,#591010); color:var(--bad); border-color:rgba(255,123,123,0.12);}
-  .playbtn{background:linear-gradient(90deg,var(--accent), #ff9a6b); color:#06121a; border:none; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer;}
+  .playbtn{background:linear-gradient(90deg,var(--accent), #ff9a6b); color:#06121a; border:none; padding:12px 16px; border-radius:10px; font-weight:700; cursor:pointer;}
   .row{display:flex; gap:8px; align-items:center;}
   .kbd{background:#071226;border-radius:6px;padding:6px 8px;font-size:13px;}
-  ul{margin:6px 0 0 18px;padding:0;}
-  .stat-line{display:flex; justify-content:space-between; gap:8px;}
   .small{font-size:13px;}
   footer{font-size:12px;color:var(--muted); margin-top:8px;}
+  /* responsive */
+  @media (max-width:900px){
+    .grid{flex-direction:column;}
+    .right{width:100%;}
+    .buttons{grid-template-columns: repeat(2, 1fr);}
+    .big-note{font-size:40px;}
+    .choice{min-height:56px;font-size:18px;}
+  }
+  /* mobile sticky play */
+  @media (max-width:520px){
+    .sticky-play{position:fixed; left:12px; right:12px; bottom:12px; z-index:60;}
+  }
 </style>
 </head>
 <body>
-  <div class="wrap" role="application" aria-label="Sax Note Guessing">
+  <div class="wrap" role="application" aria-label="Sax note guessing trainer">
     <header>
       <div>
-        <h1>Sax Note Guess — Practice & Games</h1>
-        <div class="muted small">Synth sax timbre • Transpose & presets • Stats saved locally</div>
+        <h1>Sax Note Guess — Pro</h1>
+        <div class="muted small">Practice transposed notes, realistic synth, adaptive difficulty — mobile friendly</div>
       </div>
-
-      <div class="controls">
-        <div class="muted small">Mode</div>
-        <select id="gameMode">
-          <option value="practice">Practice</option>
-          <option value="timed">60s Timed</option>
-          <option value="survival">Survival (3 wrong)</option>
-        </select>
-        <div class="muted small">Show accidentals as</div>
-        <select id="accType">
-          <option value="sharp">Sharps</option>
-          <option value="flat">Flats</option>
-        </select>
+      <div class="controls-row">
+        <label class="muted small">Mode
+          <select id="gameMode">
+            <option value="practice">Practice</option>
+            <option value="timed">60s Timed</option>
+            <option value="survival">Survival (3 wrong)</option>
+          </select>
+        </label>
+        <label class="muted small">Auto-Advance
+          <select id="autoAdvance">
+            <option value="off">Off</option>
+            <option value="correct">On correct</option>
+            <option value="always">Always</option>
+          </select>
+        </label>
       </div>
     </header>
 
-    <div class="panel">
+    <div class="grid">
       <main class="left">
-        <div class="card">
-          <div class="row" style="justify-content:space-between; align-items:center;">
+        <div class="card" id="mainCard">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
             <div>
-              <div class="muted small">Identify the note</div>
-              <div id="displayNote" class="big-note">???</div>
-              <div id="subInfo" class="muted small">Press <span class="kbd">Space</span> or Play to hear the note. Replay allowed.</div>
+              <div class="muted small">Identify this note</div>
+              <div id="displayNote" class="big-note" aria-live="polite">???</div>
+              <div id="subInfo" class="muted small">Press <span class="kbd">Space</span> or Play to hear the pitch. Replay freely.</div>
             </div>
-            <div style="min-width:140px;text-align:right">
+            <div style="text-align:right;min-width:140px">
               <div class="muted small">Score</div>
               <div id="score" style="font-weight:700;font-size:18px">0 / 0</div>
               <div id="streak" class="muted small">Streak: 0</div>
             </div>
           </div>
 
-          <div class="buttons" id="choicesArea" style="margin-top:12px;">
-            <!-- choices inserted here -->
+          <div id="choicesArea" class="buttons" style="margin-top:12px">
+            <!-- choices injected here -->
           </div>
 
-          <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
             <button id="play" class="playbtn">Play ▶</button>
             <button id="replay">Play Again ↺</button>
             <button id="next">Next »</button>
-
-            <label style="margin-left:10px;"><input id="autoNext" type="checkbox" /> Auto next on correct</label>
+            <label style="align-items:center;display:flex;gap:6px;"><input id="vibrate" type="checkbox" /> Haptics</label>
+            <label style="align-items:center;display:flex;gap:6px;"><input id="autoRepCorrect" type="checkbox" /> Replay correct after guess</label>
           </div>
 
           <div id="resultHint" class="muted small" style="margin-top:10px"></div>
         </div>
 
-        <div class="card" style="display:flex;gap:10px;flex-wrap:wrap;">
-          <div style="min-width:220px;">
-            <div class="muted small">Difficulty</div>
-            <select id="difficulty">
-              <option value="scale">Scale (major scale degrees)</option>
-              <option value="chromatic">Chromatic (all semitones)</option>
-            </select>
+        <div class="card">
+          <div class="controls-row" style="justify-content:flex-start;">
+            <label class="muted small">Difficulty
+              <select id="difficulty">
+                <option value="scale">Scale (major)</option>
+                <option value="chromatic">Chromatic</option>
+              </select>
+            </label>
 
-            <div style="margin-top:8px" class="muted small">Select key/root</div>
-            <select id="rootKey"></select>
+            <label class="muted small">Root Key
+              <select id="rootKey"></select>
+            </label>
 
-            <div style="margin-top:8px" class="muted small">Range</div>
-            <select id="range">
-              <option value="C3-C5">C3 — C5</option>
-              <option value="C4-C6" selected>C4 — C6</option>
-              <option value="A2-A4">A2 — A4</option>
-            </select>
+            <label class="muted small">Range
+              <select id="range">
+                <option value="C3-C5">C3 — C5</option>
+                <option value="C4-C6" selected>C4 — C6</option>
+                <option value="A2-A4">A2 — A4</option>
+                <option value="A3-A5">A3 — A5</option>
+              </select>
+            </label>
           </div>
 
-          <div style="min-width:220px;">
-            <div class="muted small">Octave mode</div>
-            <label><input id="octaveHidden" type="checkbox" /> Octave hidden (name only)</label><br/>
-            <label><input id="requireOctave" type="checkbox" /> Require octave in choices</label>
-            <div class="muted small" style="margin-top:8px">If both checked: octaveHidden takes precedence (user guesses name only). If only requireOctave — choices include octave labels.</div>
-
-            <div style="margin-top:8px" class="muted small">Accidentals</div>
-            <label><input id="accidentalDisplay" type="checkbox" checked /> Show sharps (unchecked = flats)</label>
+          <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+            <label class="muted small"><input id="octaveHidden" type="checkbox" /> Octave hidden</label>
+            <label class="muted small"><input id="requireOctave" type="checkbox" /> Force octave in choices</label>
+            <label class="muted small">Accidentals
+              <select id="accidentalOpt">
+                <option value="auto">Auto by key</option>
+                <option value="sharp">Sharps</option>
+                <option value="flat">Flats</option>
+              </select>
+            </label>
           </div>
         </div>
 
         <div class="card">
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="controls-row">
             <div>
-              <div class="muted small">Instrument / Transpose Preset</div>
+              <div class="muted small">Transpose / Instrument</div>
               <select id="preset">
-                <option value="concert">Concert (no transposition)</option>
-                <option value="alto_eb">Alto Sax (Eb) — sounds written −9 semitones</option>
-                <option value="bari_eb">Baritone Sax (Eb) — sounds written −21 semitones</option>
-                <option value="tenor_bb">Tenor Sax (Bb) — sounds written −14 semitones</option>
-                <option value="soprano_bb">Soprano Sax (Bb) — sounds written −2 semitones</option>
-                <option value="custom">Custom shift (semitones)</option>
+                <option value="concert">Concert (C)</option>
+                <option value="alto_eb">Alto Sax (E♭) — written -> sounding -9</option>
+                <option value="bari_eb">Baritone Sax (E♭) — written -> sounding -21</option>
+                <option value="tenor_bb">Tenor Sax (B♭) — written -> sounding -14</option>
+                <option value="soprano_bb">Soprano Sax (B♭) — written -> sounding -2</option>
+                <option value="custom">Custom</option>
               </select>
             </div>
 
             <div id="customShiftWrap" style="display:none;">
-              <div class="muted small">Custom semitone shift</div>
-              <input id="customShift" type="number" value="0" style="width:120px" />
+              <div class="muted small">Custom shift (semitones)</div>
+              <input id="customShift" type="number" value="0" style="width:110px" />
             </div>
 
-            <div style="min-width:180px;">
-              <div class="muted small">Auto-advance on correct</div>
-              <label><input id="autoAdvance" type="checkbox" /> Enable</label>
-              <div class="muted small">(same as Auto next checkbox above)</div>
+            <div>
+              <div class="muted small">Game difficulty adapt</div>
+              <select id="adaptive">
+                <option value="off">Adaptive OFF</option>
+                <option value="gentle">Adaptive ON — Gentle</option>
+                <option value="aggressive">Adaptive ON — Aggressive</option>
+              </select>
             </div>
-
           </div>
         </div>
 
         <div class="card">
-          <div class="muted small">Game controls & shortcuts</div>
-          <ul class="muted small">
-            <li><span class="kbd">Space</span> — Play / Replay</li>
-            <li><span class="kbd">1…9</span> — Choose answer</li>
-            <li><span class="kbd">N</span> — Next</li>
-            <li><span class="kbd">R</span> — Reset stats</li>
-          </ul>
+          <div class="muted small">Audio profile</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+            <select id="audioProfile">
+              <option value="clean">Clean Sax</option>
+              <option value="breathy">Breathy / Soft</option>
+              <option value="bright">Bright / Edge</option>
+              <option value="muted">Muted / Subtone</option>
+            </select>
+            <label class="muted small"><input id="vibrato" type="checkbox" checked /> Vibrato</label>
+            <label class="muted small">Volume <input id="volume" type="range" min="0" max="1" step="0.01" value="0.6" /></label>
+          </div>
         </div>
 
       </main>
 
       <aside class="right">
         <div class="card">
-          <div class="muted small">Sax Timbre</div>
-          <label><input id="useRealistic" type="checkbox" checked /> Use realistic sax-like synth</label>
-          <div class="muted small">Controls: Volume</div>
-          <input id="volume" type="range" min="0" max="1" step="0.01" value="0.6" />
-        </div>
-
-        <div class="card">
           <div class="muted small">Stats</div>
           <div style="margin-top:8px;">
-            <div class="stat-line"><div class="muted">Accuracy</div><div id="statAccuracy">—</div></div>
-            <div class="stat-line"><div class="muted">Avg response</div><div id="statAvgRt">—</div></div>
-            <div class="stat-line"><div class="muted">Best streak</div><div id="statBestStreak">—</div></div>
-            <div class="stat-line"><div class="muted">Total tries</div><div id="statTotal">0</div></div>
-            <div style="margin-top:8px;">
-              <button id="resetStats">Reset Stats</button>
-            </div>
+            <div class="row"><div class="muted small">Accuracy</div><div style="flex:1"></div><div id="statAccuracy" class="muted small">—</div></div>
+            <div class="row"><div class="muted small">Avg rt</div><div style="flex:1"></div><div id="statAvg" class="muted small">—</div></div>
+            <div class="row"><div class="muted small">Best streak</div><div style="flex:1"></div><div id="statBest" class="muted small">0</div></div>
+            <div class="row"><div class="muted small">Total</div><div style="flex:1"></div><div id="statTotal" class="muted small">0</div></div>
+            <div style="margin-top:8px;"><button id="resetStats">Reset Stats</button></div>
           </div>
         </div>
 
         <div class="card">
           <div class="muted small">Missed notes (top)</div>
-          <ol id="missedList" class="muted small" style="margin:8px 0 0 16px"></ol>
+          <ol id="missedList" class="muted small" style="margin-top:8px"></ol>
+        </div>
+
+        <div class="card">
+          <div class="muted small">Game tips</div>
+          <ul class="muted small" style="margin-top:8px">
+            <li>Use octave-hidden to train pitch class recognition.</li>
+            <li>Adaptive difficulty adjusts range/chromatic content automatically.</li>
+            <li>Use Play Again before Next to replay the same note.</li>
+          </ul>
         </div>
       </aside>
     </div>
 
-    <footer class="muted small">Made for sax players — synthesized sax timbre. Want real recorded samples later? I can add upload/import support.</footer>
+    <footer class="muted small">If you'd like I can add real recorded samples uploader next — this version keeps everything synthesized and offline.</footer>
   </div>
 
 <script>
-/* ---------- Utilities: notes, midi, freq ---------- */
-const NOTE_NAMES_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-const NOTE_NAMES_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+/* ====================
+   Utilities: notes / midi / names
+   ==================== */
+const SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const A4_MIDI = 69, A4_FREQ = 440;
 
-const A4_MIDI = 69, A4_FREQ = 440.0;
 function midiToFreq(m){ return A4_FREQ * Math.pow(2,(m - A4_MIDI)/12); }
-function midiToPc(m, useFlats=false){
-  const idx = ((m % 12) + 12) % 12;
-  return (useFlats ? NOTE_NAMES_FLAT[idx] : NOTE_NAMES_SHARP[idx]);
-}
-function midiToName(m, useFlats=false){
-  const idx = ((m % 12) + 12) % 12;
-  const oct = Math.floor(m/12) - 1;
-  return (useFlats ? NOTE_NAMES_FLAT[idx] : NOTE_NAMES_SHARP[idx]) + oct;
-}
+function midiPc(m, useFlats=false){ const i=((m%12)+12)%12; return useFlats ? FLAT[i] : SHARP[i]; }
+function midiName(m, useFlats=false){ const i=((m%12)+12)%12; const oct = Math.floor(m/12)-1; return (useFlats?FLAT[i]:SHARP[i]) + oct; }
 function nameToMidi(name){
-  // Expects like C4, Db3, A#2
   const match = name.match(/^([A-G][b#]?)(-?\d+)$/i);
   if(!match) return null;
-  const p = match[1].toUpperCase();
-  const o = parseInt(match[2],10);
-  const idxSharp = NOTE_NAMES_SHARP.indexOf(p);
-  const idxFlat = NOTE_NAMES_FLAT.indexOf(p);
-  const idx = idxSharp >= 0 ? idxSharp : idxFlat;
+  const pitch = match[1].toUpperCase();
+  const oct = parseInt(match[2],10);
+  const idx = SHARP.indexOf(pitch) !== -1 ? SHARP.indexOf(pitch) : FLAT.indexOf(pitch);
   if(idx < 0) return null;
-  return (o + 1)*12 + idx;
+  return (oct + 1)*12 + idx;
 }
 function parseRange(r){
-  const [a,b] = r.split('-');
-  return [nameToMidi(a), nameToMidi(b)];
+  const [a,b]=r.split('-'); return [nameToMidi(a), nameToMidi(b)];
 }
 
-/* ---------- DOM refs ---------- */
-const playBtn = document.getElementById('play');
-const replayBtn = document.getElementById('replay');
-const nextBtn = document.getElementById('next');
-const choicesArea = document.getElementById('choicesArea');
-const displayNote = document.getElementById('displayNote');
-const resultHint = document.getElementById('resultHint');
-const scoreEl = document.getElementById('score');
-const streakEl = document.getElementById('streak');
-const volumeEl = document.getElementById('volume');
-
-const difficultySel = document.getElementById('difficulty');
-const rootKeySel = document.getElementById('rootKey');
-const rangeSel = document.getElementById('range');
-const octaveHiddenChk = document.getElementById('octaveHidden');
-const requireOctaveChk = document.getElementById('requireOctave');
-const presetSel = document.getElementById('preset');
-const customShiftWrap = document.getElementById('customShiftWrap');
-const customShiftInput = document.getElementById('customShift');
-const accTypeSel = document.getElementById('accType');
-const accidentalDisplayChk = document.getElementById('accidentalDisplay');
-
-const autoNextChk = document.getElementById('autoNext');
-const autoAdvanceChk = document.getElementById('autoAdvance');
-const useRealisticChk = document.getElementById('useRealistic');
-
+/* ========= DOM refs ========= */
+const playBtn = document.getElementById('play'), replayBtn = document.getElementById('replay'), nextBtn = document.getElementById('next');
+const choicesArea = document.getElementById('choicesArea'), displayNote = document.getElementById('displayNote');
+const resultHint = document.getElementById('resultHint'), scoreEl = document.getElementById('score'), streakEl = document.getElementById('streak');
+const difficultySel = document.getElementById('difficulty'), rootKeySel = document.getElementById('rootKey'), rangeSel = document.getElementById('range');
+const octaveHiddenChk = document.getElementById('octaveHidden'), requireOctaveChk = document.getElementById('requireOctave');
+const accidentalOpt = document.getElementById('accidentalOpt'), accidentalDisplayChk = document.getElementById('accidentalDisplay'); // accidentalDisplayChk may not exist
+const presetSel = document.getElementById('preset'), customShiftWrap = document.getElementById('customShiftWrap'), customShiftInput = document.getElementById('customShift');
+const adaptiveSel = document.getElementById('adaptive');
+const audioProfileSel = document.getElementById('audioProfile'), vibratoChk = document.getElementById('vibrato'), volumeEl = document.getElementById('volume');
+const autoAdvanceSel = document.getElementById('autoAdvance'), autoRepCorrect = document.getElementById('autoRepCorrect');
+const audioVibrateChk = document.getElementById('vibrate');
 const gameModeSel = document.getElementById('gameMode');
+const statAccuracy = document.getElementById('statAccuracy'), statAvg = document.getElementById('statAvg'), statBest = document.getElementById('statBest'), statTotal = document.getElementById('statTotal');
+const missedList = document.getElementById('missedList'), resetStatsBtn = document.getElementById('resetStats');
 
-const statAccuracy = document.getElementById('statAccuracy');
-const statAvgRt = document.getElementById('statAvgRt');
-const statBestStreak = document.getElementById('statBestStreak');
-const statTotal = document.getElementById('statTotal');
-const missedList = document.getElementById('missedList');
-const resetStatsBtn = document.getElementById('resetStats');
-const accType = document.getElementById('accType');
-
-/* ---------- State ---------- */
+/* ========= State ========= */
 let audioCtx = null, masterGain = null;
-let current = { writtenMidi: null, soundingMidi: null, tStart: null };
-let stats = { total:0, correct:0, totalResponseMs:0, bestStreak:0, currentStreak:0, misses: {} };
-let total = 0, correct = 0, streak = 0;
+let current = { writtenMidi:null, soundingMidi:null, tStart:0 };
+let stats = { total:0, correct:0, totalResponseMs:0, bestStreak:0, currentStreak:0, misses:{} };
+let gameTimer = null, timeLeft = 0, survivalLeft = 3;
 
-let gameTimer = null, timeLeft = 0, survivalWrong = 3;
+/* Presets: shift (written -> sounding) */
+const PRESETS = { concert:0, alto_eb:-9, bari_eb:-21, tenor_bb:-14, soprano_bb:-2, custom:0 };
 
-/* ---------- Transpose presets (written -> sounding; in semitones added to written to compute sounding) ---------- */
-const PRESETS = {
-  concert: 0,
-  alto_eb: -9,   // written -> sounding: −9 semitones (Alto Eb)
-  bari_eb: -21,  // Baritone Eb: down an octave + major sixth
-  tenor_bb: -14, // Tenor Bb: down an octave + major second
-  soprano_bb: -2,
-  custom: 0
-};
-
-/* ---------- Populate root key dropdown ---------- */
+/* Fill root key select */
 (function fillRoots(){
-  const names = NOTE_NAMES_SHARP;
   for(let i=0;i<12;i++){
-    const nSharp = NOTE_NAMES_SHARP[i];
-    const nFlat = NOTE_NAMES_FLAT[i];
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = nSharp + " / " + nFlat;
+    const opt = document.createElement('option'); opt.value = i; opt.textContent = SHARP[i] + ' / ' + FLAT[i];
     rootKeySel.appendChild(opt);
   }
 })();
 
-/* ---------- Helpers for choice generation ---------- */
-function getScaleNotes(rootMidi){
-  // return set of semitone offsets for major scale: 0,2,4,5,7,9,11
-  return [0,2,4,5,7,9,11].map(x=> (rootMidi + x));
+/* Load stats from localStorage */
+function loadStats(){
+  try{ const s = localStorage.getItem('sax_trainer_stats_v2'); if(s) stats = JSON.parse(s); } catch(e){}
+  updateStatsUI();
 }
-function pickRandomInRange(low,high){
-  return Math.floor(Math.random() * (high - low + 1)) + low;
+function saveStats(){ try{ localStorage.setItem('sax_trainer_stats_v2', JSON.stringify(stats)); }catch(e){} updateStatsUI(); }
+function resetStats(){ stats={ total:0, correct:0, totalResponseMs:0, bestStreak:0, currentStreak:0, misses:{} }; saveStats(); }
+resetStatsBtn.addEventListener('click', ()=> { if(confirm('Reset stats?')) resetStats(); });
+
+/* Adaptive difficulty logic */
+function adaptiveTune(){
+  const mode = adaptiveSel.value;
+  if(mode === 'off') return;
+  const acc = stats.total ? (stats.correct / stats.total) : 1.0;
+  // Gentle vs aggressive
+  if(mode === 'gentle'){
+    if(acc > 0.85) {
+      // widen by selecting bigger range if possible — choose higher range preset
+      if(rangeSel.value === 'C4-C6') rangeSel.value = 'A3-A5';
+      else if(rangeSel.value === 'C3-C5') rangeSel.value = 'C4-C6';
+    } else if(acc < 0.6){
+      // narrow
+      if(rangeSel.value === 'A3-A5') rangeSel.value = 'C4-C6';
+      else if(rangeSel.value === 'C4-C6') rangeSel.value = 'C3-C5';
+    }
+  } else if(mode === 'aggressive'){
+    if(acc > 0.85){
+      rangeSel.value = 'A3-A5';
+      difficultySel.value = 'chromatic';
+    } else if(acc < 0.6){
+      rangeSel.value = 'C3-C5';
+      difficultySel.value = 'scale';
+    }
+  }
 }
 
-/* ---------- Choice builder ---------- */
-function buildChoicesArray(writtenMidi){
-  const cnt = 8; // show up to 8 choices (you can tune)
-  const lowHigh = parseRange(rangeSel.value);
-  const low=lowHigh[0], high=lowHigh[1];
-
+/* Build question: choose writtenMidi (display), compute sounding using preset shift */
+function pickNewWritten(){
+  const [low,high] = parseRange(rangeSel.value);
+  const rootPc = parseInt(rootKeySel.value,10);
+  const difficulty = difficultySel.value;
+  const preset = presetSel.value;
+  // build pool based on difficulty
   let pool = [];
-  const useFlats = (accTypeSel.value === 'flat' || !accidentalDisplayChk.checked) ? true : false;
-
-  if(difficultySel.value === 'scale'){
-    // build a list of possible scale pitches across octaves inside range centered on root
-    const rootPc = parseInt(rootKeySel.value,10);
+  if(difficulty === 'scale'){
+    const degrees = [0,2,4,5,7,9,11];
     for(let m=low;m<=high;m++){
-      if(((m - ((rootPc + 12) % 12)) % 12 + 12) % 12 === 0) {
-        // exact root in this octave
-      }
-    }
-    // Instead compute all notes in major scale across range
-    const degrees = [0,2,4,5,7,9,11];
-    for(let octave=Math.floor(low/12); octave<=Math.floor(high/12); octave++){
-      const base = octave*12;
-      for(const d of degrees){
-        const mm = base + parseInt(rootKeySel.value,10) + d;
-        if(mm >= low && mm <= high) pool.push(mm);
-      }
-    }
-  } else {
-    // chromatic: any semitone in range
-    for(let m=low;m<=high;m++) pool.push(m);
-  }
-
-  // If pool is empty fallback to chromatic in range
-  if(pool.length === 0){
-    for(let m=low;m<=high;m++) pool.push(m);
-  }
-
-  // Ensure correct present and choose distractors near correct
-  const choicesSet = new Set();
-  choicesSet.add(writtenMidi);
-  const spread = Math.max(2, Math.floor((high-low)/10));
-  while(choicesSet.size < cnt){
-    // pick from pool with some chance of near the correct
-    const near = Math.random() < 0.6;
-    if(near){
-      const offset = Math.floor((Math.random() * (spread*2 + 1))) - spread;
-      const cand = writtenMidi + offset;
-      if(cand >= low && cand <= high) choicesSet.add(cand);
-    } else {
-      const cand = pool[Math.floor(Math.random()*pool.length)];
-      choicesSet.add(cand);
-    }
-  }
-  const arr = Array.from(choicesSet);
-  // shuffle
-  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
-  return arr.slice(0, cnt);
-}
-
-/* ---------- New question logic ---------- */
-function newQuestion(skipPlay=false){
-  // create audio ctx lazily
-  if(!audioCtx) createAudio();
-
-  resultHint.textContent = '';
-  displayNote.textContent = '???';
-  // pick written or concert based on mode: we always pick a "written" note for the user to guess (displayed or hidden),
-  // then compute sounding = written + presetShift
-  const range = parseRange(rangeSel.value);
-  const [low,high] = range;
-  let writtenMidi;
-  if(difficultySel.value === 'scale'){
-    // choose random scale degree in range anchored to root key
-    const rootPc = parseInt(rootKeySel.value,10);
-    const degrees = [0,2,4,5,7,9,11];
-    // collect all possible written notes of scale
-    const pool = [];
-    for(let m=low; m<=high; m++){
-      const pc = ((m % 12)+12)%12;
+      const pc = ((m%12)+12)%12;
       const interval = (pc - rootPc + 12) % 12;
       if(degrees.includes(interval)) pool.push(m);
     }
-    if(pool.length === 0){ writtenMidi = pickRandomInRange(low,high); }
-    else writtenMidi = pool[Math.floor(Math.random()*pool.length)];
+    if(pool.length === 0) for(let m=low;m<=high;m++) pool.push(m);
   } else {
-    writtenMidi = pickRandomInRange(low,high);
+    for(let m=low;m<=high;m++) pool.push(m);
+  }
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+/* Utility: format label according to octaveHidden/requireOctave/accidental options */
+function getDisplayLabel(midi){
+  const accOpt = accidentalOpt.value; // auto/sharp/flat
+  let useFlats = false;
+  if(accOpt === 'sharp') useFlats = false;
+  else if(accOpt === 'flat') useFlats = true;
+  else {
+    // auto: if root key uses flats, show flats (very simple logic)
+    const root = parseInt(rootKeySel.value,10);
+    const flatKeys = [1,3,6,8,10]; // simplistic: Db, Eb, Gb, Ab, Bb (not strictly accurate for key signatures but fine)
+    useFlats = flatKeys.includes(root);
+  }
+  if(octaveHiddenChk.checked) return midiPc(midi, useFlats);
+  if(requireOctaveChk.checked) return midiName(midi, useFlats);
+  // Default: show name+octave but can hide octave for compact ranges — we'll show name+octave for clarity
+  return midiName(midi, useFlats);
+}
+
+/* Build unique choices based on labels (ensures no duplicate labels) */
+function buildUniqueChoices(correctWritten){
+  const [low,high] = parseRange(rangeSel.value);
+  const needed = 8;
+  const rawCandidates = [];
+  // make a candidate set depending on difficulty
+  if(difficultySel.value === 'scale'){
+    const rootPc = parseInt(rootKeySel.value,10);
+    const degrees = [0,2,4,5,7,9,11];
+    for(let m=low;m<=high;m++){
+      const pc = ((m%12)+12)%12;
+      if(degrees.includes((pc - rootPc + 12) % 12)) rawCandidates.push(m);
+    }
+  } else {
+    for(let m=low;m<=high;m++) rawCandidates.push(m);
+  }
+  // ensure rawCandidates contains correctWritten
+  if(!rawCandidates.includes(correctWritten)) rawCandidates.push(correctWritten);
+
+  // we will create label->midi mapping to dedupe labels
+  const labelToMidi = new Map();
+  function tryAdd(m){
+    const label = getDisplayLabel(m);
+    if(!labelToMidi.has(label)) labelToMidi.set(label, m);
+    // if label exists but maps to a different midi, we keep first occurrence to avoid duplicates
   }
 
+  // add correct first
+  tryAdd(correctWritten);
+
+  // prefer near notes as distractors first
+  const spread = Math.max(2, Math.floor((high-low)/10));
+  const candSet = new Set(rawCandidates);
+  // add near offsets
+  for(let off=1; off<=spread*2 && labelToMidi.size < needed; off++){
+    [off, -off].forEach(o=>{
+      const m = correctWritten + o;
+      if(m >= low && m <= high) tryAdd(m);
+    });
+  }
+  // fill from pool randomly
+  const shuffled = Array.from(candSet).sort(()=>Math.random()-0.5);
+  for(const m of shuffled){
+    if(labelToMidi.size >= needed) break;
+    tryAdd(m);
+  }
+  // if still short, expand by octave shifts
+  let octaveShift = 12;
+  while(labelToMidi.size < needed){
+    const mUp = correctWritten + octaveShift;
+    const mDn = correctWritten - octaveShift;
+    if(mUp >= low && mUp <= high) tryAdd(mUp);
+    if(mDn >= low && mDn <= high) tryAdd(mDn);
+    octaveShift += 12;
+    if(octaveShift > 48) break;
+  }
+
+  // ensure correct label present
+  const correctLabel = getDisplayLabel(correctWritten);
+  if(!labelToMidi.has(correctLabel)) labelToMidi.set(correctLabel, correctWritten);
+
+  // Turn into array and shuffle
+  const entries = Array.from(labelToMidi.entries()).slice(0, needed);
+  for(let i=entries.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [entries[i],entries[j]]=[entries[j],entries[i]]; }
+  // return array of {label, midi}
+  return entries.map(([label,midi])=>({label,midi}));
+}
+
+/* New question: picks written, computes sounding, renders choices, optionally plays */
+function newQuestion(skipPlay=false){
+  if(!audioCtx) createAudio();
+  resultHint.textContent = '';
+  displayNote.textContent = '???';
+  // pick written based on difficulty & range
+  const written = pickNewWritten();
   // compute sounding using preset
   const preset = presetSel.value;
-  const shift = preset === 'custom' ? parseInt(customShiftInput.value || "0",10) : PRESETS[preset];
-  const soundingMidi = writtenMidi + shift;
-
-  current.writtenMidi = writtenMidi;
-  current.soundingMidi = soundingMidi;
-  current.tStart = performance.now();
-
-  // build choices (displayed values may hide octave or include octave)
-  renderChoices();
-
+  const shift = (preset === 'custom') ? parseInt(customShiftInput.value||'0',10) : PRESETS[preset];
+  const sounding = written + shift;
+  current.writtenMidi = written; current.soundingMidi = sounding; current.tStart = performance.now();
+  // render choices
+  renderChoicesFor(written);
+  // play unless specified not to
   if(!skipPlay) playCurrent();
 }
 
-/* ---------- Render choices ---------- */
-function formatChoiceLabel(midi){
-  const useFlats = (accTypeSel.value === 'flat' || !accidentalDisplayChk.checked) ? true : false;
-  if(octaveHiddenChk.checked){
-    return midiToPc(midi, useFlats);
-  } else if(requireOctaveChk.checked){
-    return midiToName(midi, useFlats);
-  } else {
-    // default: show name+octave if range is small, else name-only
-    return midiToName(midi, useFlats);
-  }
-}
-
-function renderChoices(){
+/* Render choices for a given written midi */
+function renderChoicesFor(writtenMidi){
   choicesArea.innerHTML = '';
-  const arr = buildChoicesArray(current.writtenMidi);
-  arr.forEach((wmidi, idx) => {
+  const arr = buildUniqueChoices(writtenMidi);
+  arr.forEach((item, idx)=>{
     const btn = document.createElement('button');
     btn.className = 'choice';
-    // if octaveHidden -> label pitch class only
-    const label = octaveHiddenChk.checked ? midiToPc(wmidi, accTypeSel.value==='flat') : (requireOctaveChk.checked ? midiToName(wmidi, accTypeSel.value==='flat') : midiToName(wmidi, accTypeSel.value==='flat'));
-    btn.textContent = label;
-    btn.dataset.written = wmidi;
+    btn.textContent = item.label;
+    btn.dataset.written = item.midi;
+    btn.dataset.index = idx;
     btn.addEventListener('click', onChoose);
     choicesArea.appendChild(btn);
   });
 }
 
-/* ---------- Answer handling ---------- */
+/* Answer handling */
 function onChoose(e){
-  const chosen = parseInt(e.currentTarget.dataset.written,10);
-  const correctWritten = current.writtenMidi;
-  const tNow = performance.now();
-  const rt = tNow - (current.tStart || tNow);
-  stats.total += 1;
-  if(chosen === correctWritten){
-    stats.correct += 1;
-    stats.currentStreak = (stats.currentStreak || 0) + 1;
+  const btn = e.currentTarget;
+  const chosen = parseInt(btn.dataset.written,10);
+  const correct = current.writtenMidi;
+  const now = performance.now();
+  const rt = now - current.tStart;
+  // update stats
+  stats.total = (stats.total||0) + 1;
+  if(chosen === correct){
+    stats.correct = (stats.correct||0) + 1;
+    stats.currentStreak = (stats.currentStreak||0) + 1;
     stats.bestStreak = Math.max(stats.bestStreak||0, stats.currentStreak);
-    e.currentTarget.classList.add('correct');
-    resultHint.textContent = 'Correct! Sounded: ' + midiToName(current.soundingMidi, accTypeSel.value==='flat');
-    // reveal written note
-    displayNote.textContent = (octaveHiddenChk.checked ? midiToPc(correctWritten, accTypeSel.value==='flat') : midiToName(correctWritten, accTypeSel.value==='flat'));
-    // record response time
-    stats.totalResponseMs = (stats.totalResponseMs||0) + rt;
-    // update stats if auto-advance
-    saveStats();
-    if(autoNextChk.checked || autoAdvanceChk.checked){
-      // short delay then next
+    btn.classList.add('correct');
+    resultHint.textContent = 'Correct — sounded: ' + midiName(current.soundingMidi, shouldUseFlats());
+    if(autoRepCorrect.checked){
+      setTimeout(()=>playCurrent(), 160);
+    }
+    if(autoAdvanceSel.value === 'correct' || autoAdvanceSel.value === 'always'){
       setTimeout(()=> {
         newQuestion();
       }, 600);
     }
+    // vibrate small
+    if(audioVibrateChk.checked && navigator.vibrate) navigator.vibrate(40);
+    // record response time
+    stats.totalResponseMs = (stats.totalResponseMs||0) + rt;
   } else {
     stats.currentStreak = 0;
-    e.currentTarget.classList.add('wrong');
-    // reveal correct
-    Array.from(choicesArea.children).forEach(b=>{
-      if(parseInt(b.dataset.written,10) === correctWritten) b.classList.add('correct');
-    });
-    displayNote.textContent = (octaveHiddenChk.checked ? midiToPc(correctWritten, accTypeSel.value==='flat') : midiToName(correctWritten, accTypeSel.value==='flat'));
-    resultHint.textContent = `Incorrect. Sounded: ${midiToName(current.soundingMidi, accTypeSel.value==='flat')}`;
+    btn.classList.add('wrong');
+    // reveal correct button visually
+    Array.from(choicesArea.children).forEach(b=>{ if(parseInt(b.dataset.written,10) === correct) b.classList.add('correct'); });
+    resultHint.textContent = 'Incorrect — sounded: ' + midiName(current.soundingMidi, shouldUseFlats());
     // record miss
-    const pc = midiToPc(correctWritten, accTypeSel.value==='flat');
+    const pc = midiPc(correct, shouldUseFlats());
     stats.misses[pc] = (stats.misses[pc]||0) + 1;
-    saveStats();
+    if(audioVibrateChk.checked && navigator.vibrate) navigator.vibrate([40,20,30]);
+    // survival mode handling
     if(gameModeSel.value === 'survival'){
-      survivalWrong -= 1;
-      if(survivalWrong <= 0){
-        // game over
-        resultHint.textContent += ` — Game over (survival). Press Next to restart.`;
-        // freeze choices
+      survivalLeft -= 1;
+      if(survivalLeft <= 0){
+        resultHint.textContent += ' — Game over (survival). Press Next to restart.';
       }
     }
   }
-  // disable choices after selection
+  // disable choices
   Array.from(choicesArea.children).forEach(b=>b.disabled = true);
-  updateUIStats();
+  // reveal displayed written note (respect octaveHidden option: show appropriate form)
+  const displayLabel = octaveHiddenChk.checked ? midiPc(current.writtenMidi, shouldUseFlats()) : midiName(current.writtenMidi, shouldUseFlats());
+  displayNote.textContent = displayLabel;
+  // update stats & UI
+  saveStats();
+  updateStatsUI();
 }
 
-/* ---------- Score & Stats UI ---------- */
-function updateUIStats(){
-  scoreEl.textContent = `${stats.correct} / ${stats.total}`;
-  streakEl.textContent = `Streak: ${stats.currentStreak || 0}`;
+/* ========== UI Stats update ========== */
+function updateStatsUI(){
+  scoreEl.textContent = (stats.correct||0) + ' / ' + (stats.total||0);
+  streakEl.textContent = 'Streak: ' + (stats.currentStreak||0);
+  statAccuracy.textContent = stats.total ? Math.round((stats.correct/stats.total)*100) + '%' : '—';
+  statAvg.textContent = stats.totalResponseMs ? Math.round(stats.totalResponseMs / stats.total) + ' ms' : '—';
+  statBest.textContent = stats.bestStreak || 0;
   statTotal.textContent = stats.total || 0;
-  statAccuracy.textContent = stats.total ? Math.round((stats.correct / stats.total)*100) + '%' : '—';
-  statAvgRt.textContent = stats.totalResponseMs ? Math.round((stats.totalResponseMs / stats.total)) + ' ms' : '—';
-  statBestStreak.textContent = stats.bestStreak || 0;
-
-  // update missed list
+  // missed list
+  missedList.innerHTML = '';
   const arr = Object.entries(stats.misses || {});
   arr.sort((a,b)=>b[1]-a[1]);
-  missedList.innerHTML = '';
-  arr.slice(0,8).forEach(([note,c])=>{
-    const li = document.createElement('li');
-    li.textContent = `${note} — ${c}`;
-    missedList.appendChild(li);
+  arr.slice(0,8).forEach(([note,count])=>{
+    const li = document.createElement('li'); li.textContent = `${note} — ${count}`; missedList.appendChild(li);
   });
 }
 
-/* ---------- Audio: sax-like synth ---------- */
+/* ========== Audio: Improved sax-like synth with profiles ========== */
 function createAudio(){
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   masterGain = audioCtx.createGain();
   masterGain.gain.value = parseFloat(volumeEl.value || 0.6);
   masterGain.connect(audioCtx.destination);
 }
-function playSynthFrequency(freq){
-  if(!audioCtx) createAudio();
-  if(audioCtx.state === 'suspended') audioCtx.resume();
-  const t0 = audioCtx.currentTime + 0.02;
-  const dur = 1.8 + Math.random()*0.6;
 
-  // main gain envelope
-  const g = audioCtx.createGain();
-  g.gain.setValueAtTime(0.0001, t0);
-  g.gain.linearRampToValueAtTime(1.0, t0 + 0.02 + Math.random()*0.02);
-  g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.5 + Math.random()*0.2);
-  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  g.connect(masterGain);
-
-  // two slightly detuned oscillators (saw + pulse mix)
-  const osc1 = audioCtx.createOscillator();
-  osc1.type = 'sawtooth';
-  osc1.frequency.value = freq * (1 + (Math.random()*0.003 - 0.0015));
-  const osc2 = audioCtx.createOscillator();
-  osc2.type = 'triangle';
-  osc2.frequency.value = freq * (1 - 0.002 + Math.random()*0.004);
-
-  // subtle pitch bend at attack (like reed articulation)
-  const bendGain = audioCtx.createGain();
-  const bend = audioCtx.createOscillator();
-  bend.type = 'sine';
-  bend.frequency.value = 5 + Math.random()*2;
-  bendGain.gain.value = freq * 0.002;
-  bend.connect(bendGain);
-  bendGain.connect(osc1.frequency);
-  bendGain.connect(osc2.frequency);
-
-  // detune LFO for breathiness
-  const breathOsc = audioCtx.createOscillator();
-  breathOsc.type = 'sine'; breathOsc.frequency.value = 2.8;
-  const breathGain = audioCtx.createGain(); breathGain.gain.value = 6; // Hz tiny modulation
-  breathOsc.connect(breathGain);
-  breathGain.connect(osc1.frequency);
-  breathGain.connect(osc2.frequency);
-
-  // mix oscillators
-  const mix = audioCtx.createGain(); mix.gain.value = 0.9;
-  osc1.connect(mix); osc2.connect(mix);
-
-  // bandpass + formant filtering to approximate sax formants
-  const bp = audioCtx.createBiquadFilter(); bp.type='bandpass';
-  bp.frequency.value = Math.max(500, freq * 1.9 + (Math.random()*80 - 40));
-  bp.Q.value = 1.6;
-  const form = audioCtx.createBiquadFilter(); form.type='peaking';
-  form.frequency.value = Math.max(900, freq * 2.6);
-  form.gain.value = 6;
-  mix.connect(bp); bp.connect(form);
-
-  // noise (breath) source
-  const bufferSize = 2 * audioCtx.sampleRate;
-  const noiseBuf = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-  const nb = noiseBuf.getChannelData(0);
-  for(let i=0;i<bufferSize;i++) nb[i] = (Math.random()*2-1) * 0.4;
-  const noise = audioCtx.createBufferSource(); noise.buffer = noiseBuf;
-  const noiseFilter = audioCtx.createBiquadFilter(); noiseFilter.type='highpass'; noiseFilter.frequency.value = Math.max(600, freq*0.8);
-  const noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.0,t0);
-  noise.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(g);
-
-  // mix form + noise into envelope
-  form.connect(g);
-  // set dynamic noise envelope
-  noiseGain.gain.setValueAtTime(0.06, t0 + 0.01);
-  noiseGain.gain.exponentialRampToValueAtTime(0.005, t0 + dur - 0.1);
-
-  // connect
-  osc1.start(t0); osc2.start(t0); bend.start(t0); breathOsc.start(t0); noise.start(t0);
-  osc1.stop(t0 + dur + 0.05); osc2.stop(t0 + dur + 0.05); bend.stop(t0 + dur + 0.05); breathOsc.stop(t0 + dur + 0.05); noise.stop(t0 + dur + 0.05);
+/* Choose if we should use flats for labels (simple logic) */
+function shouldUseFlats(){
+  const opt = accidentalOpt.value;
+  if(opt === 'flat') return true;
+  if(opt === 'sharp') return false;
+  // auto
+  const root = parseInt(rootKeySel.value,10);
+  const flatKeys = [1,3,6,8,10];
+  return flatKeys.includes(root);
 }
 
-/* ---------- Play current note (sounding) ---------- */
+/* Play a single note (sounding MIDI) */
 function playCurrent(){
   if(!current.soundingMidi) return;
   if(!audioCtx) createAudio();
   if(audioCtx.state === 'suspended') audioCtx.resume();
   masterGain.gain.value = parseFloat(volumeEl.value || 0.6);
+
   const freq = midiToFreq(current.soundingMidi);
-  if(useRealisticChk.checked) playSynthFrequency(freq);
-  else {
-    // simple sine
-    const o = audioCtx.createOscillator(); o.type='sine'; o.frequency.value = freq;
-    const g = audioCtx.createGain(); g.gain.value = 0.0001; g.connect(masterGain);
-    g.gain.linearRampToValueAtTime(0.9, audioCtx.currentTime + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.6);
-    o.connect(g);
-    o.start(); o.stop(audioCtx.currentTime + 1.7);
-  }
+  playSaxLike(freq);
 }
 
-/* ---------- Event wiring ---------- */
+/* Sax synth: uses two oscillators, formant peaking, noise, mild vibrato and profile adjustments */
+function playSaxLike(freq){
+  if(!audioCtx) createAudio();
+  const now = audioCtx.currentTime + 0.01;
+  const dur = 1.2 + Math.random()*0.8;
+
+  // envelope
+  const env = audioCtx.createGain();
+  env.gain.setValueAtTime(0.0001, now);
+  env.gain.linearRampToValueAtTime(1.0, now + 0.02);
+  env.gain.exponentialRampToValueAtTime(0.15, now + 0.55);
+  env.gain.exponentialRampToValueAtTime(0.001, now + dur);
+  env.connect(masterGain);
+
+  // base oscillators (triangle + saw/pulse blend)
+  const o1 = audioCtx.createOscillator(); o1.type = 'triangle';
+  const o2 = audioCtx.createOscillator(); o2.type = 'sawtooth';
+  // slight detune
+  const detune = (Math.random()*6 - 3);
+  o1.frequency.value = freq * (1 + (Math.random()*0.002 - 0.001));
+  o2.frequency.value = freq * (1 + (detune/1000));
+  // mix
+  const mix = audioCtx.createGain(); mix.gain.value = 0.9;
+  o1.connect(mix); o2.connect(mix);
+
+  // vibrato LFO (user toggle)
+  let vibOsc, vibGain;
+  if(vibratoChk.checked){
+    vibOsc = audioCtx.createOscillator(); vibOsc.type='sine'; vibOsc.frequency.value=5 + Math.random()*2;
+    vibGain = audioCtx.createGain(); vibGain.gain.value = freq * 0.0015; // subtle
+    vibOsc.connect(vibGain); vibGain.connect(o1.frequency); vibGain.connect(o2.frequency);
+    vibOsc.start(now);
+  }
+
+  // breath noise
+  const bufSize = 2 * audioCtx.sampleRate;
+  const noiseBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = noiseBuf.getChannelData(0);
+  for(let i=0;i<bufSize;i++) data[i] = (Math.random()*2 - 1);
+  const noiseSrc = audioCtx.createBufferSource(); noiseSrc.buffer = noiseBuf;
+  const noiseFilter = audioCtx.createBiquadFilter(); noiseFilter.type='bandpass';
+  noiseFilter.frequency.value = Math.max(600, freq*0.8);
+  noiseFilter.Q.value = 0.8;
+  const noiseGain = audioCtx.createGain(); noiseGain.gain.value = 0.06;
+  noiseSrc.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(env);
+
+  // formant peaking to shape sax-like tone (two peaks)
+  const form1 = audioCtx.createBiquadFilter(); form1.type='peaking'; form1.frequency.value = Math.max(700, freq*1.6); form1.gain.value = 6; form1.Q.value = 1.2;
+  const form2 = audioCtx.createBiquadFilter(); form2.type='peaking'; form2.frequency.value = Math.max(1200, freq*2.5); form2.gain.value = 4; form2.Q.value = 1.0;
+  mix.connect(form1); form1.connect(form2); form2.connect(env);
+
+  // final tone filter (gentle lowpass to avoid harshness)
+  const toneFilter = audioCtx.createBiquadFilter(); toneFilter.type='lowpass';
+  // profile adjustments
+  const profile = audioProfileSel.value; // clean, breathy, bright, muted
+  if(profile === 'clean'){ toneFilter.frequency.value = 6800; form1.gain.value = 6; noiseGain.gain.value = 0.06; }
+  else if(profile === 'breathy'){ toneFilter.frequency.value = 5200; form1.gain.value = 4; noiseGain.gain.value = 0.12; env.gain.exponentialRampToValueAtTime(0.12, now + dur); }
+  else if(profile === 'bright'){ toneFilter.frequency.value = 8800; form1.gain.value = 8; noiseGain.gain.value = 0.04; }
+  else if(profile === 'muted'){ toneFilter.frequency.value = 4200; form1.gain.value = 3; noiseGain.gain.value = 0.02; }
+
+  // connect through filter to env -> master
+  // currently form2 -> env already done; but we want toneFilter before masterGain for global shape
+  // so create an intermediate
+  const finalGain = audioCtx.createGain(); finalGain.gain.value = 1.0;
+  env.disconnect(masterGain);
+  env.connect(toneFilter); toneFilter.connect(finalGain); finalGain.connect(masterGain);
+
+  // start sources
+  o1.start(now); o2.start(now); noiseSrc.start(now);
+  // stop them later
+  o1.stop(now + dur + 0.05); o2.stop(now + dur + 0.05); noiseSrc.stop(now + dur + 0.05);
+  if(vibOsc) vibOsc.stop(now + dur + 0.05);
+}
+
+/* ========== Event wiring ========== */
 playBtn.addEventListener('click', ()=> playCurrent());
 replayBtn.addEventListener('click', ()=> playCurrent());
-nextBtn.addEventListener('click', ()=>{
-  // if in timed mode restart timer if needed
-  if(gameModeSel.value === 'timed' && !gameTimer) startTimedGame();
-  if(gameModeSel.value === 'survival') survivalWrong = 3;
+nextBtn.addEventListener('click', ()=> {
+  if(gameModeSel.value === 'timed' && !gameTimer) startTimed();
+  if(gameModeSel.value === 'survival') survivalLeft = 3;
   newQuestion();
   Array.from(choicesArea.children).forEach(b=>{ b.disabled = false; b.className='choice'; });
 });
 
-document.addEventListener('keydown',(ev)=>{
+document.addEventListener('keydown', (ev)=>{
   if(ev.code === 'Space'){ ev.preventDefault(); playCurrent(); }
   else if(ev.key.toLowerCase() === 'n'){ newQuestion(); }
-  else if(ev.key.toLowerCase() === 'r'){ resetAllStats(); }
+  else if(ev.key.toLowerCase() === 'r'){ resetStats(); }
   else {
     const k = parseInt(ev.key,10);
     if(!isNaN(k) && k >= 1){
-      const idx = k - 1;
-      const btn = choicesArea.children[idx];
+      const btn = choicesArea.children[k-1];
       if(btn && !btn.disabled) btn.click();
     }
   }
 });
 
-/* ---------- Preset and settings changes ---------- */
-presetSel.addEventListener('change', ()=>{
-  if(presetSel.value === 'custom') customShiftWrap.style.display = 'block';
-  else customShiftWrap.style.display = 'none';
+/* Setting changes */
+presetSel.addEventListener('change', ()=> {
+  if(presetSel.value === 'custom') customShiftWrap.style.display = 'block'; else customShiftWrap.style.display = 'none';
 });
-document.getElementById('customShift').addEventListener('change', ()=>{ /* nothing else */ });
+adaptiveSel.addEventListener('change', ()=> { /* no-op */ });
+audioProfileSel.addEventListener('change', ()=> { /* change will take effect at next play */ });
+volumeEl.addEventListener('input', ()=> { if(masterGain) masterGain.gain.value = parseFloat(volumeEl.value); });
 
-difficultySel.addEventListener('change', ()=> newQuestion());
-rootKeySel.addEventListener('change', ()=> newQuestion());
-rangeSel.addEventListener('change', ()=> newQuestion());
-octaveHiddenChk.addEventListener('change', ()=> renderChoices());
-requireOctaveChk.addEventListener('change', ()=> renderChoices());
-accTypeSel.addEventListener('change', ()=> renderChoices());
-accidentalDisplayChk.addEventListener('change', ()=> renderChoices());
-accType.addEventListener('change', ()=> renderChoices());
-autoAdvanceChk.addEventListener('change', ()=> {
-  autoNextChk.checked = autoAdvanceChk.checked;
-});
-autoNextChk.addEventListener('change', ()=> {
-  autoAdvanceChk.checked = autoNextChk.checked;
-});
-
-/* ---------- Persistence: stats in localStorage ---------- */
-function loadStats(){
-  try{
-    const data = localStorage.getItem('sax_note_stats_v1');
-    if(data) stats = JSON.parse(data);
-  }catch(e){}
-  updateUIStats();
-}
-function saveStats(){
-  try{
-    localStorage.setItem('sax_note_stats_v1', JSON.stringify(stats));
-  }catch(e){}
-  updateUIStats();
-}
-function resetAllStats(){
-  stats = { total:0, correct:0, totalResponseMs:0, bestStreak:0, currentStreak:0, misses:{} };
-  saveStats();
-}
-resetStatsBtn.addEventListener('click', resetAllStats);
-
-/* ---------- Game modes ---------- */
-function startTimedGame(){
-  // 60 seconds challenge
+/* Timed mode */
+function startTimed(){
   if(gameTimer) clearInterval(gameTimer);
   timeLeft = 60;
-  const oldText = subInfo = document.getElementById('subInfo');
-  const timerEl = document.createElement('span');
-  timerEl.id = 'timerSpan';
-  timerEl.textContent = ` • Time: ${timeLeft}s`;
-  oldText.appendChild(timerEl);
+  const timerSpan = document.createElement('span'); timerSpan.id='timerSpan';
+  const sub = document.getElementById('subInfo'); sub.appendChild(timerSpan);
+  timerSpan.textContent = ' • Time: ' + timeLeft + 's';
   gameTimer = setInterval(()=>{
     timeLeft--;
-    timerEl.textContent = ` • Time: ${timeLeft}s`;
+    timerSpan.textContent = ' • Time: ' + timeLeft + 's';
     if(timeLeft <= 0){
-      clearInterval(gameTimer);
-      gameTimer = null;
-      timerEl.textContent = ' • Time: 0s — Time up!';
+      clearInterval(gameTimer); gameTimer = null; timerSpan.textContent = ' • Time: 0s — Done';
       resultHint.textContent = `Time's up! Score: ${stats.correct} / ${stats.total}`;
     }
   },1000);
 }
 
-/* ---------- Init ---------- */
-loadStats();
+/* ========== Initialization ========== */
 function init(){
-  // pick default root key = C
+  // default root C
   rootKeySel.value = "0";
   presetSel.value = 'alto_eb';
   customShiftWrap.style.display = 'none';
-  // first question
+  loadStats();
   newQuestion();
-  updateUIStats();
 }
 init();
+
+/* Handle saving stats automatically and adaptive tuning after each question generation */
+const origSaveStats = saveStats;
+saveStats = function(){
+  adaptiveTune();
+  origSaveStats();
+};
 
 </script>
 </body>
